@@ -722,14 +722,14 @@ a:hover { text-decoration: underline; }
 }
 
 [data-theme="dark"] .status-yes {
-    color: #15803d;
-    background: #f0fdf4;
+    color: #14532d;
+    background: #bbf7d0;
     border-color: #16a34a;
 }
 
 [data-theme="dark"] .status-no {
-    color: #b91c1c;
-    background: #fff1f2;
+    color: #7f1d1d;
+    background: #fecaca;
     border-color: #dc2626;
 }
 
