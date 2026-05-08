@@ -193,7 +193,7 @@
                 aiBtn.disabled = false;
 
                 // If results area already has checklist, append AI results
-                var aiHtml = window.ScreenshotValidator.renderAiResults(result);
+                var aiHtml = window.ScreenshotValidator.renderAiResults(result, layerType);
                 var existing = resultsContent.querySelector('.ai-result');
                 if (existing) existing.remove();
 

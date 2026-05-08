@@ -896,6 +896,7 @@ a:hover { text-decoration: underline; }
     background: var(--bg-subtle);
     border-radius: var(--radius);
     border: 1px solid var(--border);
+    color: var(--text);
 }
 
 .ai-result h4 {
@@ -910,12 +911,43 @@ a:hover { text-decoration: underline; }
     border-bottom: 1px solid var(--border);
     font-size: 13px;
     line-height: 1.5;
+    color: var(--text);
 }
 
 .ai-item:last-child { border-bottom: none; }
 .ai-pass { color: var(--green); }
 .ai-fail { color: var(--red); }
 .ai-unclear { color: var(--amber); }
+
+.ai-learn-more {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 12px;
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+    opacity: 0.85;
+}
+.ai-learn-more:hover { opacity: 1; text-decoration: underline; }
+
+.ai-detail {
+    display: none;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+.ai-detail.open { display: block; }
+.ai-detail strong { color: var(--text); }
+.ai-detail .ai-detail-meta {
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
 
 /* --- Modal --- */
 .modal {

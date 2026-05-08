@@ -232,11 +232,12 @@ window.ScreenshotValidator = (function () {
     }
 
     /* ---- Render AI results ---- */
-    function renderAiResults(result) {
+    function renderAiResults(result, layerType) {
         if (result.error) {
             return '<div class="ai-result"><p style="color:var(--red)">' + escHtml(result.error) + '</p></div>';
         }
 
+        var checklist = layerType ? getChecklist(layerType) : null;
         var html = '<div class="ai-result"><h4>AI Analysis</h4>';
 
         if (result.data && result.data.catalogueSection) {
@@ -244,12 +245,35 @@ window.ScreenshotValidator = (function () {
         }
 
         if (result.data && result.data.items) {
-            result.data.items.forEach(function (item) {
+            result.data.items.forEach(function (item, i) {
                 var cls = item.status === 'PASS' ? 'ai-pass' : item.status === 'FAIL' ? 'ai-fail' : 'ai-unclear';
-                html += '<div class="ai-item"><strong class="' + cls + '">' + escHtml(item.status) + '</strong> — ' + escHtml(item.explanation || '') + '</div>';
+                html += '<div class="ai-item"><strong class="' + cls + '">' + escHtml(item.status) + '</strong> — ' + escHtml(item.explanation || '');
+
+                // "Learn more" for non-PASS items
+                if (item.status !== 'PASS' && checklist && checklist.items) {
+                    var idx = (item.index || (i + 1)) - 1;
+                    var chkItem = checklist.items[idx];
+                    if (chkItem) {
+                        var detailId = 'ai-detail-' + i;
+                        html += ' <a class="ai-learn-more" data-detail="' + detailId + '">learn more ▾</a>';
+                        html += '<div class="ai-detail" id="' + detailId + '">';
+                        html += '<strong>' + escHtml(chkItem.text) + '</strong><br>';
+                        html += escHtml(chkItem.description);
+                        if (chkItem.policyRef || chkItem.controlRef) {
+                            html += '<div class="ai-detail-meta">';
+                            if (chkItem.policyRef) html += 'Policy: ' + escHtml(chkItem.policyRef);
+                            if (chkItem.policyRef && chkItem.controlRef) html += ' · ';
+                            if (chkItem.controlRef) html += 'Control: ' + escHtml(chkItem.controlRef);
+                            html += '</div>';
+                        }
+                        html += '</div>';
+                    }
+                }
+
+                html += '</div>';
             });
         } else if (result.raw) {
-            html += '<pre style="white-space:pre-wrap;font-size:13px;line-height:1.5;font-family:var(--font);">' + escHtml(result.raw) + '</pre>';
+            html += '<pre style="white-space:pre-wrap;font-size:13px;line-height:1.5;font-family:var(--font);color:var(--text);">' + escHtml(result.raw) + '</pre>';
         }
 
         html += '</div>';
@@ -349,6 +373,19 @@ window.ScreenshotValidator = (function () {
                     handleFile(items[i].getAsFile());
                     break;
                 }
+            }
+        });
+
+        // Delegated click for "learn more" toggles in AI results
+        document.addEventListener('click', function (e) {
+            var link = e.target.closest('.ai-learn-more');
+            if (!link) return;
+            e.preventDefault();
+            var detailId = link.getAttribute('data-detail');
+            var detail = document.getElementById(detailId);
+            if (detail) {
+                detail.classList.toggle('open');
+                link.textContent = detail.classList.contains('open') ? 'learn more ▴' : 'learn more ▾';
             }
         });
     }
