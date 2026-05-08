@@ -20,6 +20,20 @@
         resultsContent.innerHTML = '';
     }
 
+    function resetToHome() {
+        hideResults();
+
+        // Clear all text inputs in the tool cards
+        var inputs = document.querySelectorAll('.tool-card .tool-input');
+        inputs.forEach(function (el) { el.value = ''; });
+
+        // Clear screenshot preview
+        if (window.ScreenshotValidator) window.ScreenshotValidator.clearImage();
+
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     /* ---- Theme ---- */
     function initTheme() {
         var theme = localStorage.getItem('tcf_theme') || 'dark';
@@ -313,6 +327,15 @@
 
         // Close results
         document.getElementById('closeResults').addEventListener('click', hideResults);
+
+        // Home button (TCF brand mark)
+        var homeBtn = document.getElementById('homeBtn');
+        if (homeBtn) {
+            homeBtn.addEventListener('click', resetToHome);
+            homeBtn.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); resetToHome(); }
+            });
+        }
 
         // Escape key
         document.addEventListener('keydown', function (e) {

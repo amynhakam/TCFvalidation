@@ -47,6 +47,10 @@
     --font: 'Helvetica Neue', Helvetica, Arial, -apple-system, sans-serif;
     --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
 
+    --scrollbar-track: #e0ded8;
+    --scrollbar-thumb: #b0aea6;
+    --scrollbar-thumb-hover: #8a8880;
+
     --header-h: 56px;
     --max-w: 1120px;
 }
@@ -73,6 +77,10 @@
     --border-focus: #3b82f6;
     --border-card: #e0ded8;
 
+    --scrollbar-track: #333338;
+    --scrollbar-thumb: #555560;
+    --scrollbar-thumb-hover: #7a7a88;
+
     --accent: #3b82f6;
     --accent-hover: #2563eb;
     --accent-light: #dce8ff;
@@ -96,7 +104,19 @@ html {
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    scrollbar-width: thin;
 }
+
+/* Scrollbar — WebKit (Chrome, Edge, Safari) */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 5px;
+    border: 2px solid var(--scrollbar-track);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 
 body {
     font-family: var(--font);
@@ -145,7 +165,10 @@ a:hover { text-decoration: underline; }
     font-size: 11px;
     letter-spacing: 0.5px;
     border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.15s;
 }
+.brand-mark:hover { opacity: 0.85; }
 
 .brand-text {
     font-size: 30px;
