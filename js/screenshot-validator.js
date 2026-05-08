@@ -198,7 +198,8 @@ window.ScreenshotValidator = (function () {
                     { type: 'image_url', image_url: { url: imageData } }
                 ]
             }],
-            max_tokens: 2000
+            max_tokens: 2000,
+            temperature: 0
         };
         if (model) body.model = model;
 
