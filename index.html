@@ -132,12 +132,21 @@
                     <p class="setting-hint">Choose your AI backend for screenshot analysis.</p>
                     <div class="setting-input-row">
                         <select id="aiProvider" class="select-input">
-                            <option value="azure">Azure OpenAI (Microsoft)</option>
+                            <option value="github">GitHub Models (Copilot)</option>
+                            <option value="azure">Azure OpenAI</option>
                             <option value="openai">OpenAI</option>
                         </select>
                     </div>
                 </div>
-                <div class="setting-row" id="azureSettings">
+                <div class="setting-row" id="githubSettings">
+                    <label for="githubToken">GitHub Personal Access Token</label>
+                    <p class="setting-hint">A PAT with <code>models:read</code> scope. Create one at <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">github.com/settings/tokens</a>. Stored only in localStorage.</p>
+                    <div class="setting-input-row">
+                        <input type="password" id="githubToken" class="tool-input" placeholder="ghp_...">
+                        <button id="githubTokenToggle" class="btn btn-ghost btn-sm">Show</button>
+                    </div>
+                </div>
+                <div class="setting-row" id="azureSettings" hidden>
                     <label for="azureEndpoint">Azure OpenAI Endpoint</label>
                     <p class="setting-hint">Your Azure OpenAI resource endpoint, e.g. https://your-resource.openai.azure.com</p>
                     <div class="setting-input-row">

@@ -52,6 +52,7 @@
         var providerSelect = document.getElementById('aiProvider');
         var azureSection = document.getElementById('azureSettings');
         var openaiSection = document.getElementById('openaiSettings');
+        var githubSection = document.getElementById('githubSettings');
 
         // Azure fields
         var azureEndpoint = document.getElementById('azureEndpoint');
@@ -63,10 +64,15 @@
         var apiInput = document.getElementById('apiKeyInput');
         var toggle = document.getElementById('apiKeyToggle');
 
+        // GitHub fields
+        var githubToken = document.getElementById('githubToken');
+        var githubTokenToggle = document.getElementById('githubTokenToggle');
+
         function updateProviderUI() {
             var provider = providerSelect.value;
             azureSection.hidden = provider !== 'azure';
             openaiSection.hidden = provider !== 'openai';
+            githubSection.hidden = provider !== 'github';
         }
 
         providerSelect.addEventListener('change', function () {
@@ -76,11 +82,12 @@
 
         btn.addEventListener('click', function () {
             // Load saved values
-            providerSelect.value = localStorage.getItem('tcf_ai_provider') || 'azure';
+            providerSelect.value = localStorage.getItem('tcf_ai_provider') || 'github';
             if (azureEndpoint) azureEndpoint.value = localStorage.getItem('tcf_azure_endpoint') || '';
             if (azureDeployment) azureDeployment.value = localStorage.getItem('tcf_azure_deployment') || '';
             if (azureApiKey) azureApiKey.value = localStorage.getItem('tcf_azure_key') || '';
             if (apiInput) apiInput.value = localStorage.getItem('tcf_api_key') || '';
+            if (githubToken) githubToken.value = localStorage.getItem('tcf_github_token') || '';
             updateProviderUI();
             modal.showModal();
         });
@@ -109,6 +116,7 @@
         autoSave(azureDeployment, 'tcf_azure_deployment');
         autoSave(azureApiKey, 'tcf_azure_key');
         autoSave(apiInput, 'tcf_api_key');
+        autoSave(githubToken, 'tcf_github_token');
 
         // Toggle visibility buttons
         function wireToggle(input, btn) {
@@ -121,6 +129,7 @@
         }
         wireToggle(azureApiKey, azureKeyToggle);
         wireToggle(apiInput, toggle);
+        wireToggle(githubToken, githubTokenToggle);
     }
 
     /* ---- Topic Search ---- */

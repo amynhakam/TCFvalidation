@@ -118,11 +118,23 @@ window.ScreenshotValidator = (function () {
 
     /* ---- AI Analysis ---- */
     function aiAnalyze(layerType, onResult) {
-        var provider = localStorage.getItem('tcf_ai_provider') || 'azure';
+        var provider = localStorage.getItem('tcf_ai_provider') || 'github';
 
         var apiKey, fetchUrl, headers, model;
 
-        if (provider === 'azure') {
+        if (provider === 'github') {
+            apiKey = localStorage.getItem('tcf_github_token');
+            if (!apiKey) {
+                onResult({ error: 'No GitHub token configured. Add your Personal Access Token in Settings.' });
+                return;
+            }
+            fetchUrl = 'https://models.inference.ai.azure.com/chat/completions';
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey
+            };
+            model = 'gpt-4o';
+        } else if (provider === 'azure') {
             apiKey = localStorage.getItem('tcf_azure_key');
             var endpoint = localStorage.getItem('tcf_azure_endpoint');
             var deployment = localStorage.getItem('tcf_azure_deployment') || 'gpt-4o';
@@ -268,7 +280,7 @@ window.ScreenshotValidator = (function () {
         if (controls) controls.hidden = false;
 
         // Show AI button if any AI provider is configured
-        var hasAI = localStorage.getItem('tcf_azure_key') || localStorage.getItem('tcf_api_key');
+        var hasAI = localStorage.getItem('tcf_github_token') || localStorage.getItem('tcf_azure_key') || localStorage.getItem('tcf_api_key');
         if (aiBtn && hasAI) {
             aiBtn.hidden = false;
         }
