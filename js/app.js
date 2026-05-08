@@ -1,0 +1,315 @@
+/* ============================================================
+   App — TCF Policy Tool
+   Wires together: TopicSearch, ScreenshotValidator, TCDecoder
+   ============================================================ */
+(function () {
+    'use strict';
+
+    var resultsArea, resultsContent, resultsTitle;
+
+    /* ---- Show / hide results ---- */
+    function showResults(title, html) {
+        resultsTitle.textContent = title;
+        resultsContent.innerHTML = html;
+        resultsArea.hidden = false;
+        resultsArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function hideResults() {
+        resultsArea.hidden = true;
+        resultsContent.innerHTML = '';
+    }
+
+    /* ---- Theme ---- */
+    function initTheme() {
+        var theme = localStorage.getItem('tcf_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        updateThemeIcon(theme);
+
+        document.getElementById('themeToggle').addEventListener('click', function () {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('tcf_theme', next);
+            updateThemeIcon(next);
+        });
+    }
+
+    function updateThemeIcon(theme) {
+        var light = document.getElementById('themeIconLight');
+        var dark = document.getElementById('themeIconDark');
+        if (light) light.hidden = theme === 'dark';
+        if (dark) dark.hidden = theme === 'light';
+    }
+
+    /* ---- Settings modal ---- */
+    function initSettings() {
+        var modal = document.getElementById('settingsModal');
+        var btn = document.getElementById('settingsBtn');
+        var close = document.getElementById('settingsClose');
+
+        // Provider toggle
+        var providerSelect = document.getElementById('aiProvider');
+        var azureSection = document.getElementById('azureSettings');
+        var openaiSection = document.getElementById('openaiSettings');
+
+        // Azure fields
+        var azureEndpoint = document.getElementById('azureEndpoint');
+        var azureDeployment = document.getElementById('azureDeployment');
+        var azureApiKey = document.getElementById('azureApiKey');
+        var azureKeyToggle = document.getElementById('azureKeyToggle');
+
+        // OpenAI fields
+        var apiInput = document.getElementById('apiKeyInput');
+        var toggle = document.getElementById('apiKeyToggle');
+
+        function updateProviderUI() {
+            var provider = providerSelect.value;
+            azureSection.hidden = provider !== 'azure';
+            openaiSection.hidden = provider !== 'openai';
+        }
+
+        providerSelect.addEventListener('change', function () {
+            localStorage.setItem('tcf_ai_provider', providerSelect.value);
+            updateProviderUI();
+        });
+
+        btn.addEventListener('click', function () {
+            // Load saved values
+            providerSelect.value = localStorage.getItem('tcf_ai_provider') || 'azure';
+            if (azureEndpoint) azureEndpoint.value = localStorage.getItem('tcf_azure_endpoint') || '';
+            if (azureDeployment) azureDeployment.value = localStorage.getItem('tcf_azure_deployment') || '';
+            if (azureApiKey) azureApiKey.value = localStorage.getItem('tcf_azure_key') || '';
+            if (apiInput) apiInput.value = localStorage.getItem('tcf_api_key') || '';
+            updateProviderUI();
+            modal.showModal();
+        });
+
+        close.addEventListener('click', function () { modal.close(); });
+
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) modal.close();
+        });
+
+        // Auto-save all fields on change
+        var saveTimer;
+        function autoSave(el, key) {
+            if (!el) return;
+            el.addEventListener('input', function () {
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(function () {
+                    var val = el.value.trim();
+                    if (val) { localStorage.setItem(key, val); }
+                    else { localStorage.removeItem(key); }
+                }, 400);
+            });
+        }
+
+        autoSave(azureEndpoint, 'tcf_azure_endpoint');
+        autoSave(azureDeployment, 'tcf_azure_deployment');
+        autoSave(azureApiKey, 'tcf_azure_key');
+        autoSave(apiInput, 'tcf_api_key');
+
+        // Toggle visibility buttons
+        function wireToggle(input, btn) {
+            if (!input || !btn) return;
+            btn.addEventListener('click', function () {
+                var isPass = input.type === 'password';
+                input.type = isPass ? 'text' : 'password';
+                btn.textContent = isPass ? 'Hide' : 'Show';
+            });
+        }
+        wireToggle(azureApiKey, azureKeyToggle);
+        wireToggle(apiInput, toggle);
+    }
+
+    /* ---- Topic Search ---- */
+    function initSearch() {
+        var input = document.getElementById('searchInput');
+        var btn = document.getElementById('searchBtn');
+
+        function doSearch() {
+            var query = input.value.trim();
+            if (!query) return;
+            var results = window.TopicSearch.search(query);
+            var html = window.TopicSearch.renderResults(results, query);
+            showResults('Search Results', html);
+        }
+
+        btn.addEventListener('click', doSearch);
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') doSearch();
+        });
+    }
+
+    /* ---- Screenshot Validator ---- */
+    function initScreenshot() {
+        var validateBtn = document.getElementById('validateBtn');
+        var aiBtn = document.getElementById('aiAnalyzeBtn');
+        var layerSelect = document.getElementById('layerType');
+
+        validateBtn.addEventListener('click', function () {
+            var layerType = layerSelect.value;
+            if (!layerType) {
+                alert('Please select a UI layer type.');
+                return;
+            }
+            var html = window.ScreenshotValidator.renderChecklist(layerType);
+            showResults('Compliance Checklist — Controls Catalogue', html);
+
+            // Wire up checkboxes for progress
+            resultsContent.addEventListener('change', function (e) {
+                if (e.target.type === 'checkbox') {
+                    window.ScreenshotValidator.updateProgress(resultsContent);
+                }
+            });
+        });
+
+        aiBtn.addEventListener('click', function () {
+            var layerType = layerSelect.value;
+            if (!layerType) {
+                alert('Please select a UI layer type.');
+                return;
+            }
+            if (!window.ScreenshotValidator.getImageData()) {
+                alert('Please upload a screenshot first.');
+                return;
+            }
+
+            aiBtn.classList.add('btn-loading');
+            aiBtn.disabled = true;
+
+            window.ScreenshotValidator.aiAnalyze(layerType, function (result) {
+                aiBtn.classList.remove('btn-loading');
+                aiBtn.disabled = false;
+
+                // If results area already has checklist, append AI results
+                var aiHtml = window.ScreenshotValidator.renderAiResults(result);
+                var existing = resultsContent.querySelector('.ai-result');
+                if (existing) existing.remove();
+
+                resultsContent.insertAdjacentHTML('beforeend', aiHtml);
+
+                // Auto-check items that AI marked as PASS
+                if (result.data && result.data.items) {
+                    result.data.items.forEach(function (item) {
+                        if (item.status === 'PASS') {
+                            var cb = resultsContent.querySelector('#chk-' + (item.index - 1));
+                            if (cb) cb.checked = true;
+                        }
+                    });
+                    window.ScreenshotValidator.updateProgress(resultsContent);
+                }
+
+                if (resultsArea.hidden) {
+                    showResults('AI Analysis — Controls Catalogue', aiHtml);
+                }
+            });
+        });
+    }
+
+    /* ---- TC String Decoder ---- */
+    function initDecoder() {
+        var input = document.getElementById('tcStringInput');
+        var btn = document.getElementById('decodeBtn');
+
+        btn.addEventListener('click', function () {
+            var tcString = input.value.trim();
+            if (!tcString) return;
+            var result = window.TCDecoder.decode(tcString);
+            var html = window.TCDecoder.renderResults(result);
+            showResults('TC String Decoded', html);
+        });
+    }
+
+    /* ---- Vendor Search ---- */
+    function initVendorSearch() {
+        var input = document.getElementById('vendorSearchInput');
+        var btn = document.getElementById('vendorSearchBtn');
+
+        function doSearch() {
+            var query = input.value.trim();
+            if (!query) return;
+
+            btn.classList.add('btn-loading');
+            btn.disabled = true;
+
+            window.VendorSearch.search(query, function (results) {
+                btn.classList.remove('btn-loading');
+                btn.disabled = false;
+                var html = window.VendorSearch.renderResults(results, query);
+                showResults('Purpose & Vendor Details', html);
+            });
+        }
+
+        btn.addEventListener('click', doSearch);
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') doSearch();
+        });
+    }
+
+    /* ---- Data Freshness ---- */
+    function initDataFreshness() {
+        var el = document.getElementById('dataFreshness');
+        if (!el) return;
+
+        var ts = window.__VENDOR_DATA_REFRESHED;
+        if (!ts) {
+            el.innerHTML = '<span class="freshness-dot stale"></span> No vendor data found. Run <code>refresh-vendor-data.ps1</code>';
+            return;
+        }
+
+        var refreshed = new Date(ts);
+        var now = new Date();
+        var daysAgo = Math.floor((now - refreshed) / (1000 * 60 * 60 * 24));
+
+        var dotClass, label;
+        if (daysAgo <= 7) {
+            dotClass = 'fresh';
+            label = 'Up to date';
+        } else if (daysAgo <= 21) {
+            dotClass = 'aging';
+            label = daysAgo + ' days old';
+        } else {
+            dotClass = 'stale';
+            label = daysAgo + ' days old — consider refreshing';
+        }
+
+        var dateStr = refreshed.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        var gvlVersion = (window.__GVL_DATA && window.__GVL_DATA.vendorListVersion) ? ' · GVL v' + window.__GVL_DATA.vendorListVersion : '';
+
+        el.innerHTML = '<span class="freshness-dot ' + dotClass + '"></span>' +
+            '<span>' + label + gvlVersion + '</span>' +
+            '<span class="freshness-date">Updated ' + dateStr + '</span>';
+    }
+
+    /* ---- Init ---- */
+    document.addEventListener('DOMContentLoaded', function () {
+        resultsArea = document.getElementById('resultsArea');
+        resultsContent = document.getElementById('resultsContent');
+        resultsTitle = document.getElementById('resultsTitle');
+
+        initTheme();
+        initSettings();
+
+        // Init modules
+        if (window.TopicSearch) window.TopicSearch.init();
+        if (window.ScreenshotValidator) window.ScreenshotValidator.init();
+
+        initSearch();
+        initScreenshot();
+        initDecoder();
+        if (window.VendorSearch) initVendorSearch();
+        initDataFreshness();
+
+        // Close results
+        document.getElementById('closeResults').addEventListener('click', hideResults);
+
+        // Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !resultsArea.hidden) {
+                hideResults();
+            }
+        });
+    });
+})();

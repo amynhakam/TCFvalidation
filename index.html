@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCF Policy Tool</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-brand">
+            <span class="brand-mark">TCF</span>
+            <span class="brand-text">Policy Validation Tool</span>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="icon-btn" title="Toggle theme" aria-label="Toggle dark mode">
+                <svg id="themeIconLight" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+                <svg id="themeIconDark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            </button>
+            <button id="settingsBtn" class="icon-btn" title="Settings" aria-label="Settings">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.32 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="main">
+        <section class="hero">
+            <h1>Transparency &amp; Consent Framework</h1>
+            <p class="hero-sub">Policy Reference &amp; Validation Tool</p>
+        </section>
+
+        <section class="tools-grid">
+            <!-- Search Policies -->
+            <div class="tool-card" id="searchTool">
+                <div class="tool-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                </div>
+                <h2>Search Policies</h2>
+                <p class="tool-desc">Look up TCF policy requirements by topic or keyword</p>
+                <div class="tool-action">
+                    <div class="tool-input-group">
+                        <input type="text" id="searchInput" class="tool-input" placeholder="e.g. legitimate interest, first layer, vendor list..." autocomplete="off">
+                        <button id="searchBtn" class="btn btn-primary">Search</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screenshot Validator -->
+            <div class="tool-card" id="screenshotTool">
+                <div class="tool-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                </div>
+                <h2>Screenshot Validator</h2>
+                <p class="tool-desc">Upload a CMP screenshot to check against compliance requirements</p>
+                <div class="tool-action">
+                    <div class="upload-zone" id="uploadZone">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="upload-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <p>Drop image here, paste, or <label for="fileInput" class="upload-link">browse</label></p>
+                        <input type="file" id="fileInput" accept="image/*" hidden>
+                    </div>
+                    <div id="screenshotPreview" class="screenshot-preview" hidden>
+                        <img id="previewImg" alt="Screenshot preview">
+                        <button id="removeImg" class="btn btn-ghost btn-sm">Remove</button>
+                    </div>
+                    <div class="screenshot-controls" id="screenshotControls" hidden>
+                        <select id="layerType" class="select-input">
+                            <option value="">Select UI layer type…</option>
+                            <option value="initial-layer">Initial Layer (Consent Banner)</option>
+                            <option value="secondary-layer">Secondary Layer (Granular Settings)</option>
+                            <option value="li-layer">Legitimate Interest Layer</option>
+                            <option value="resurface-ui">Resurface / Preference Management</option>
+                        </select>
+                        <div class="screenshot-btns">
+                            <button id="validateBtn" class="btn btn-primary">Check Compliance</button>
+                            <button id="aiAnalyzeBtn" class="btn btn-secondary" hidden>AI Analyze</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TC String Decoder -->
+            <div class="tool-card" id="decoderTool">
+                <div class="tool-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                </div>
+                <h2>TCF String Analyzer</h2>
+                <p class="tool-desc">Decode and validate a Transparency &amp; Consent String</p>
+                <div class="tool-action">
+                    <div class="tool-input-group">
+                        <textarea id="tcStringInput" class="tool-textarea" placeholder="Paste a TC String here…" rows="3"></textarea>
+                        <button id="decodeBtn" class="btn btn-primary">Decode</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Purpose & Vendor Details -->
+            <div class="tool-card" id="vendorTool">
+                <div class="tool-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <h2>Purpose &amp; Vendor Details</h2>
+                <p class="tool-desc">Look up GVL vendor information and TCF purpose definitions</p>
+                <div class="tool-action">
+                    <div class="tool-input-group">
+                        <input type="text" id="vendorSearchInput" class="tool-input" placeholder="e.g. Microsoft Advertising, analytics, Criteo..." autocomplete="off">
+                        <button id="vendorSearchBtn" class="btn btn-primary">Search</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results -->
+        <section class="results-area" id="resultsArea" hidden>
+            <div class="results-header">
+                <h2 id="resultsTitle">Results</h2>
+                <button id="closeResults" class="btn btn-ghost">✕ Close</button>
+            </div>
+            <div class="results-content" id="resultsContent"></div>
+        </section>
+    </main>
+
+    <!-- Settings Dialog -->
+    <dialog id="settingsModal" class="modal">
+        <div class="modal-panel">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button id="settingsClose" class="modal-close" aria-label="Close">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-row">
+                    <label>AI Provider</label>
+                    <p class="setting-hint">Choose your AI backend for screenshot analysis.</p>
+                    <div class="setting-input-row">
+                        <select id="aiProvider" class="select-input">
+                            <option value="azure">Azure OpenAI (Microsoft)</option>
+                            <option value="openai">OpenAI</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="setting-row" id="azureSettings">
+                    <label for="azureEndpoint">Azure OpenAI Endpoint</label>
+                    <p class="setting-hint">Your Azure OpenAI resource endpoint, e.g. https://your-resource.openai.azure.com</p>
+                    <div class="setting-input-row">
+                        <input type="text" id="azureEndpoint" class="tool-input" placeholder="https://your-resource.openai.azure.com">
+                    </div>
+                    <label for="azureDeployment" style="margin-top:10px;">Deployment Name</label>
+                    <p class="setting-hint">The name of your GPT-4o deployment.</p>
+                    <div class="setting-input-row">
+                        <input type="text" id="azureDeployment" class="tool-input" placeholder="gpt-4o">
+                    </div>
+                    <label for="azureApiKey" style="margin-top:10px;">API Key</label>
+                    <p class="setting-hint">Stored only in your browser's localStorage.</p>
+                    <div class="setting-input-row">
+                        <input type="password" id="azureApiKey" class="tool-input" placeholder="Azure API key">
+                        <button id="azureKeyToggle" class="btn btn-ghost btn-sm">Show</button>
+                    </div>
+                </div>
+                <div class="setting-row" id="openaiSettings" hidden>
+                    <label for="apiKeyInput">OpenAI API Key</label>
+                    <p class="setting-hint">Stored only in your browser's localStorage.</p>
+                    <div class="setting-input-row">
+                        <input type="password" id="apiKeyInput" class="tool-input" placeholder="sk-...">
+                        <button id="apiKeyToggle" class="btn btn-ghost btn-sm">Show</button>
+                    </div>
+                </div>
+                <hr class="setting-divider">
+                <div class="setting-row">
+                    <label>Vendor Data</label>
+                    <p class="setting-hint">GVL and AVI data bundled locally. Run <code>refresh-vendor-data.ps1</code> or set up <code>setup-weekly-refresh.ps1</code> for automatic updates.</p>
+                    <div class="data-freshness" id="dataFreshness"></div>
+                </div>
+                <hr class="setting-divider">
+                <div class="setting-row">
+                    <label>Sources</label>
+                    <ul class="sources-list">
+                        <li><a href="https://iabeurope.eu/iab-europe-transparency-consent-framework-policies/" target="_blank" rel="noopener">TCF Framework Policies</a></li>
+                        <li><a href="https://iabeurope.eu/wp-content/uploads/Controls-Catalogue-TCFv2.2.pdf" target="_blank" rel="noopener">IAB Controls Catalogue — TCF v2.2</a></li>
+                        <li><span>MCG QA Playbook — GDPR Checklist</span></li>
+                        <li><a href="https://vendor-list.consensu.org/v3/vendor-list.json" target="_blank" rel="noopener">IAB Global Vendor List (GVL v3)</a></li>
+                        <li><a href="https://vendor-list.consensu.org/v2/additional-vendor-information-list.json" target="_blank" rel="noopener">Additional Vendor Information List</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <footer class="footer">
+        <p>Based on <a href="https://iabeurope.eu/iab-europe-transparency-consent-framework-policies/" target="_blank" rel="noopener">IAB Europe TCF v2.2 Policies</a>, <a href="https://iabeurope.eu/wp-content/uploads/Controls-Catalogue-TCFv2.2.pdf" target="_blank" rel="noopener">Controls Catalogue</a>, <a href="https://vendor-list.consensu.org/v3/vendor-list.json" target="_blank" rel="noopener">GVL v3</a>, and <a href="https://vendor-list.consensu.org/v2/additional-vendor-information-list.json" target="_blank" rel="noopener">Additional Vendor Information List</a>. For reference only.</p>
+    </footer>
+
+    <!-- Data (backend context — not displayed) -->
+    <script src="data/policies.js"></script>
+    <script src="data/purposes.js"></script>
+    <script src="data/controls.js"></script>
+    <script src="data/checklists.js"></script>
+    <script src="data/playbook.js"></script>
+    <script src="data/gvl-vendor-list.js"></script>
+    <script src="data/avi-list.js"></script>
+    <script src="data/vendor-data-meta.js"></script>
+
+    <!-- Application -->
+    <script src="js/tc-decoder.js"></script>
+    <script src="js/topic-search.js"></script>
+    <script src="js/vendor-search.js"></script>
+    <script src="js/screenshot-validator.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
