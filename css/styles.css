@@ -701,7 +701,7 @@ a:hover { text-decoration: underline; }
     border-bottom: none;
 }
 
-.status-yes {
+.purpose-table td.status-yes {
     color: #166534;
     font-weight: 500;
     background: #dcfce7;
@@ -711,7 +711,7 @@ a:hover { text-decoration: underline; }
     display: inline-block;
 }
 
-.status-no {
+.purpose-table td.status-no {
     color: #991b1b;
     font-weight: 500;
     background: #fee2e2;
@@ -721,13 +721,13 @@ a:hover { text-decoration: underline; }
     display: inline-block;
 }
 
-[data-theme="dark"] .status-yes {
+[data-theme="dark"] .purpose-table td.status-yes {
     color: #14532d;
     background: #bbf7d0;
     border-color: #16a34a;
 }
 
-[data-theme="dark"] .status-no {
+[data-theme="dark"] .purpose-table td.status-no {
     color: #7f1d1d;
     background: #fecaca;
     border-color: #dc2626;

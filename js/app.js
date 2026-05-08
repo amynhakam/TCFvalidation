@@ -22,7 +22,7 @@
 
     /* ---- Theme ---- */
     function initTheme() {
-        var theme = localStorage.getItem('tcf_theme') || 'light';
+        var theme = localStorage.getItem('tcf_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', theme);
         updateThemeIcon(theme);
 
