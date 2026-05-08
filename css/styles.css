@@ -284,6 +284,7 @@ a:hover { text-decoration: underline; }
 }
 
 .tool-action {
+    margin-top: auto;
 }
 
 .tool-input-group {
