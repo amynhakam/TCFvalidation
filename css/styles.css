@@ -252,6 +252,8 @@ a:hover { text-decoration: underline; }
     transition: box-shadow 0.2s ease, border-color 0.2s ease;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .tool-card:hover {
@@ -490,11 +492,13 @@ a:hover { text-decoration: underline; }
 
 .screenshot-btns {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
 }
 
 .screenshot-btns .btn {
     flex: 1;
+    min-width: 0;
 }
 
 /* --- Results Area --- */
@@ -1545,7 +1549,6 @@ a:hover { text-decoration: underline; }
 @media (max-width: 900px) {
     .tools-grid {
         grid-template-columns: repeat(2, 1fr);
-        grid-auto-rows: 1fr;
         gap: 14px;
     }
 
@@ -1587,7 +1590,6 @@ a:hover { text-decoration: underline; }
 
     .tools-grid {
         grid-template-columns: repeat(2, 1fr);
-        grid-auto-rows: 1fr;
         gap: 12px;
     }
 
@@ -1619,6 +1621,14 @@ a:hover { text-decoration: underline; }
 
     .upload-icon {
         display: none;
+    }
+
+    .screenshot-btns {
+        flex-direction: column;
+    }
+
+    .screenshot-btns .btn {
+        width: 100%;
     }
 }
 
