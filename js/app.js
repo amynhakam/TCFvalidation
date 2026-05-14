@@ -298,12 +298,26 @@
             label = daysAgo + ' days old — consider refreshing';
         }
 
+        // Calculate next Monday at 09:00 from last refresh
+        var nextUpdate = new Date(refreshed);
+        nextUpdate.setDate(nextUpdate.getDate() + ((7 - nextUpdate.getDay() + 1) % 7 || 7));
+        nextUpdate.setHours(9, 0, 0, 0);
+        // If next calculated Monday is in the past, find the next one from now
+        if (nextUpdate <= now) {
+            nextUpdate = new Date(now);
+            var daysUntilMon = (7 - nextUpdate.getDay() + 1) % 7 || 7;
+            nextUpdate.setDate(nextUpdate.getDate() + daysUntilMon);
+            nextUpdate.setHours(9, 0, 0, 0);
+        }
+        var nextDateStr = nextUpdate.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+
         var dateStr = refreshed.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
         var gvlVersion = (window.__GVL_DATA && window.__GVL_DATA.vendorListVersion) ? ' · GVL v' + window.__GVL_DATA.vendorListVersion : '';
 
         el.innerHTML = '<span class="freshness-dot ' + dotClass + '"></span>' +
             '<span>' + label + gvlVersion + '</span>' +
-            '<span class="freshness-date">Updated ' + dateStr + '</span>';
+            '<span class="freshness-date">Updated ' + dateStr + '</span>' +
+            '<span class="freshness-date">Next update: ' + nextDateStr + '</span>';
     }
 
     /* ---- Init ---- */
