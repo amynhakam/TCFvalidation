@@ -198,7 +198,27 @@ window.TopicSearch = (function () {
             }
         }
 
-        // 3. Index MCG QA Playbook
+        // 3. Index IAB TechLab GitHub Resources
+        if (window.IAB_TECHLAB_RESOURCES && window.IAB_TECHLAB_RESOURCES.documents) {
+            window.IAB_TECHLAB_RESOURCES.documents.forEach(function (doc) {
+                if (!doc.sections) return;
+                doc.sections.forEach(function (sec) {
+                    index.push({
+                        type: 'techlab',
+                        id: sec.id,
+                        title: sec.title,
+                        text: sec.title + ' ' + sec.text + ' ' + (sec.tags || []).join(' '),
+                        tags: sec.tags || [],
+                        category: doc.title,
+                        sectionHeader: 'IAB TechLab \u203a ' + doc.title,
+                        fullText: sec.text,
+                        weight: 2
+                    });
+                });
+            });
+        }
+
+        // 4. Index MCG QA Playbook
         if (window.TCF_PLAYBOOK && window.TCF_PLAYBOOK.steps) {
             window.TCF_PLAYBOOK.steps.forEach(function (step) {
                 var fullText = step.summary;
@@ -295,11 +315,13 @@ window.TopicSearch = (function () {
         // Split by type
         var policyResults = results.filter(function (r) { return r.type === 'policy'; });
         var checklistResults = results.filter(function (r) { return r.type === 'checklist'; });
+        var techlabResults = results.filter(function (r) { return r.type === 'techlab'; });
         var playbookResults = results.filter(function (r) { return r.type === 'playbook'; });
 
         var tabs = [
             { key: 'policy', label: 'TCF Framework Policies', count: policyResults.length, results: policyResults },
             { key: 'checklist', label: 'IAB Checklist', count: checklistResults.length, results: checklistResults },
+            { key: 'techlab', label: 'IAB TechLab Specs', count: techlabResults.length, results: techlabResults },
             { key: 'playbook', label: 'MCG QA Playbook', count: playbookResults.length, results: playbookResults }
         ];
 
@@ -337,6 +359,8 @@ window.TopicSearch = (function () {
                     html += '<div class="tab-source-link">Source: <a href="https://iabeurope.eu/iab-europe-transparency-consent-framework-policies/" target="_blank" rel="noopener">IAB Europe TCF v2.2 Policies</a></div>';
                 } else if (tab.key === 'checklist') {
                     html += '<div class="tab-source-link">Source: <a href="https://iabeurope.eu/wp-content/uploads/Controls-Catalogue-TCFv2.2.pdf" target="_blank" rel="noopener">Controls Catalogue — TCF v2.2</a></div>';
+                } else if (tab.key === 'techlab') {
+                    html += '<div class="tab-source-link">Source: <a href="https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/tree/master/TCFv2" target="_blank" rel="noopener">IAB TechLab GitHub Resources</a></div>';
                 } else if (tab.key === 'playbook') {
                     html += '<div class="tab-source-link">Source: MCG QA Playbook — GDPR Checklist</div>';
                 }
