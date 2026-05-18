@@ -24,3 +24,11 @@ $avi = Get-Content (Join-Path $dataDir "avi-list.json") -Raw
 "window.__VENDOR_DATA_REFRESHED = '$timestamp';" | Set-Content -Path (Join-Path $dataDir "vendor-data-meta.js") -Encoding UTF8
 
 Write-Host "Done. Vendor data updated at $timestamp"
+
+# Push updated data to GitHub so the hosted site reflects the refresh
+Write-Host "Pushing updated vendor data to GitHub..."
+Set-Location $PSScriptRoot
+git add data/gvl-vendor-list.js data/avi-list.js data/vendor-data-meta.js
+git commit -m "Auto-refresh vendor data ($timestamp)"
+git push origin main
+Write-Host "Pushed to GitHub."
