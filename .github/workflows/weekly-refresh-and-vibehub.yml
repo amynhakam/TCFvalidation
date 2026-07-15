@@ -23,8 +23,8 @@ jobs:
       - name: Configure Git identity
         shell: pwsh
         run: |
-          git config user.name "amhakam_microsoft"
-          git config user.email "amhakam_microsoft@users.noreply.github.com"
+          git config user.name "amynhakam"
+          git config user.email "amynhakam@users.noreply.github.com"
 
       - name: Refresh vendor data
         shell: pwsh
