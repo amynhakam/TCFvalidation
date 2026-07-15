@@ -73,7 +73,6 @@ jobs:
           $global:LASTEXITCODE = 0
 
       - name: Push updated app to Vibehub
-        if: steps.commit_data.outputs.changed == 'true'
         shell: pwsh
         env:
           VIBEHUB_API_KEY: ${{ secrets.VIBEHUB_API_KEY }}
@@ -98,7 +97,6 @@ jobs:
           Write-Host "Vibehub response:"
           Write-Host $response
 
-      - name: Skip Vibehub push when unchanged
-        if: steps.commit_data.outputs.changed != 'true'
-        shell: pwsh
-        run: Write-Host "Skipping Vibehub push because vendor data did not change."
+          if ($response -match '"error"') {
+            throw "Vibehub push failed: $response"
+          }
