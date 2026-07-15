@@ -1,0 +1,94 @@
+name: Weekly Refresh And Vibehub Deploy
+
+on:
+  schedule:
+    # Every Monday at 09:00 UTC
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tcf-weekly-refresh-and-vibehub
+  cancel-in-progress: false
+
+jobs:
+  refresh-and-deploy:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure Git identity
+        shell: pwsh
+        run: |
+          git config user.name "amhakam_microsoft"
+          git config user.email "amhakam_microsoft@users.noreply.github.com"
+
+      - name: Refresh vendor data
+        shell: pwsh
+        run: ./refresh-vendor-data.ps1 -SkipGitPush
+
+      - name: Commit and push refreshed data
+        id: commit_data
+        shell: pwsh
+        run: |
+          git add data/gvl-vendor-list.json data/avi-list.json data/gvl-vendor-list.js data/avi-list.js data/vendor-data-meta.js
+          if (git diff --cached --quiet) {
+            Write-Host "No vendor data changes detected."
+            "changed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          } else {
+            $timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
+            git commit -m "Auto-refresh vendor data ($timestamp)"
+            git push
+            "changed=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          }
+
+      - name: Prepare Vibehub deployment zip
+        shell: pwsh
+        run: |
+          $repoRoot = (Get-Location).Path
+          $stageDir = Join-Path $repoRoot "_vibehub_stage"
+          $zipPath = Join-Path $repoRoot "app-vibehub.zip"
+
+          if (Test-Path $stageDir) { Remove-Item $stageDir -Recurse -Force }
+          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+
+          New-Item -ItemType Directory -Path $stageDir | Out-Null
+
+          robocopy "$repoRoot" "$stageDir" /E /XD ".git" ".github" "_vibehub_stage" /XF "*.ps1" "*.cmd" "*.bat" | Out-Null
+
+          Compress-Archive -Path "$stageDir\*" -DestinationPath $zipPath -CompressionLevel Optimal
+          Write-Host "Created $zipPath"
+
+      - name: Push updated app to Vibehub
+        if: steps.commit_data.outputs.changed == 'true'
+        shell: pwsh
+        env:
+          VIBEHUB_API_KEY: ${{ secrets.VIBEHUB_API_KEY }}
+          VIBEHUB_PROJECT_NAME: ${{ secrets.VIBEHUB_PROJECT_NAME }}
+          VIBEHUB_PROJECT_DESCRIPTION: ${{ secrets.VIBEHUB_PROJECT_DESCRIPTION }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:VIBEHUB_API_KEY)) {
+            throw "Missing required secret: VIBEHUB_API_KEY"
+          }
+
+          $projectName = if ([string]::IsNullOrWhiteSpace($env:VIBEHUB_PROJECT_NAME)) { "TCF Requirements Tool" } else { $env:VIBEHUB_PROJECT_NAME }
+          $projectDescription = if ([string]::IsNullOrWhiteSpace($env:VIBEHUB_PROJECT_DESCRIPTION)) { "TCF Compliance Reference Tool" } else { $env:VIBEHUB_PROJECT_DESCRIPTION }
+          $zipPath = Join-Path (Get-Location).Path "app-vibehub.zip"
+
+          $response = curl.exe -sS -X POST `
+            -H "X-API-Key: $env:VIBEHUB_API_KEY" `
+            -F "file=@$zipPath" `
+            -F "name=$projectName" `
+            -F "description=$projectDescription" `
+            "https://vibehub.microsoft.com/api/external/push"
+
+          Write-Host "Vibehub response:"
+          Write-Host $response
+
+      - name: Skip Vibehub push when unchanged
+        if: steps.commit_data.outputs.changed != 'true'
+        shell: pwsh
+        run: Write-Host "Skipping Vibehub push because vendor data did not change."

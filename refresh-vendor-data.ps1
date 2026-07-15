@@ -1,6 +1,10 @@
 # Refresh local copies of IAB TCF vendor data
 # Run this periodically (e.g. weekly) to keep data current.
-# Usage: .\refresh-vendor-data.ps1
+# Usage: .\refresh-vendor-data.ps1 [-SkipGitPush]
+
+param(
+    [switch]$SkipGitPush
+)
 
 $dataDir = Join-Path $PSScriptRoot "data"
 $timestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ssZ'
@@ -25,10 +29,14 @@ $avi = Get-Content (Join-Path $dataDir "avi-list.json") -Raw
 
 Write-Host "Done. Vendor data updated at $timestamp"
 
-# Push updated data to GitHub so the hosted site reflects the refresh
-Write-Host "Pushing updated vendor data to GitHub..."
-Set-Location $PSScriptRoot
-git add data/gvl-vendor-list.js data/avi-list.js data/vendor-data-meta.js
-git commit -m "Auto-refresh vendor data ($timestamp)"
-git push origin main
-Write-Host "Pushed to GitHub."
+if (-not $SkipGitPush) {
+    # Push updated data to GitHub so the hosted site reflects the refresh
+    Write-Host "Pushing updated vendor data to GitHub..."
+    Set-Location $PSScriptRoot
+    git add data/gvl-vendor-list.js data/avi-list.js data/vendor-data-meta.js
+    git commit -m "Auto-refresh vendor data ($timestamp)"
+    git push origin main
+    Write-Host "Pushed to GitHub."
+} else {
+    Write-Host "SkipGitPush enabled: data refreshed locally without git commit/push."
+}
