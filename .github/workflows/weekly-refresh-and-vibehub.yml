@@ -18,7 +18,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure Git identity
         shell: pwsh
@@ -58,6 +58,11 @@ jobs:
           New-Item -ItemType Directory -Path $stageDir | Out-Null
 
           robocopy "$repoRoot" "$stageDir" /E /XD ".git" ".github" "_vibehub_stage" /XF "*.ps1" "*.cmd" "*.bat" | Out-Null
+          $robocopyExitCode = $LASTEXITCODE
+          if ($robocopyExitCode -gt 7) {
+            throw "Robocopy failed with exit code $robocopyExitCode"
+          }
+          Write-Host "Robocopy completed with exit code $robocopyExitCode (treated as success)."
 
           Compress-Archive -Path "$stageDir\*" -DestinationPath $zipPath -CompressionLevel Optimal
           Write-Host "Created $zipPath"
