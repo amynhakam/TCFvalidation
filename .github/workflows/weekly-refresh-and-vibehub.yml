@@ -5,11 +5,6 @@ on:
     # Every Monday at 09:00 UTC
     - cron: "0 9 * * 1"
   workflow_dispatch:
-    inputs:
-      deploy_to_vibehub:
-        description: "Push to Vibehub this run? WARNING: the Vibehub push API creates a brand-new project every time it is called (no update-in-place support confirmed yet). Only enable this intentionally."
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -78,15 +73,18 @@ jobs:
           $global:LASTEXITCODE = 0
 
       - name: Push updated app to Vibehub
-        if: github.event_name == 'workflow_dispatch' && inputs.deploy_to_vibehub == true
         shell: pwsh
         env:
           VIBEHUB_API_KEY: ${{ secrets.VIBEHUB_API_KEY }}
+          VIBEHUB_PROJECT_ID: ${{ secrets.VIBEHUB_PROJECT_ID }}
           VIBEHUB_PROJECT_NAME: ${{ secrets.VIBEHUB_PROJECT_NAME }}
           VIBEHUB_PROJECT_DESCRIPTION: ${{ secrets.VIBEHUB_PROJECT_DESCRIPTION }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:VIBEHUB_API_KEY)) {
             throw "Missing required secret: VIBEHUB_API_KEY"
+          }
+          if ([string]::IsNullOrWhiteSpace($env:VIBEHUB_PROJECT_ID)) {
+            throw "Missing required secret: VIBEHUB_PROJECT_ID (existing Vibehub project ID to update in place, e.g. amhakam-6lqbqx)"
           }
 
           $projectName = if ([string]::IsNullOrWhiteSpace($env:VIBEHUB_PROJECT_NAME)) { "TCF Requirements Tool" } else { $env:VIBEHUB_PROJECT_NAME }
@@ -96,6 +94,7 @@ jobs:
           $response = curl.exe -sS -X POST `
             -H "X-API-Key: $env:VIBEHUB_API_KEY" `
             -F "file=@$zipPath" `
+            -F "projectId=$env:VIBEHUB_PROJECT_ID" `
             -F "name=$projectName" `
             -F "description=$projectDescription" `
             "https://vibehub.microsoft.com/api/external/push"
@@ -106,8 +105,3 @@ jobs:
           if ($response -match '"error"') {
             throw "Vibehub push failed: $response"
           }
-
-      - name: Vibehub push skipped
-        if: "!(github.event_name == 'workflow_dispatch' && inputs.deploy_to_vibehub == true)"
-        shell: pwsh
-        run: Write-Host "Skipping Vibehub push (not explicitly requested for this run). Vendor data refresh and GitHub push still ran normally."
