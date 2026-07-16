@@ -219,6 +219,8 @@ window.TopicSearch = (function () {
         }
 
         // 4. Index MCG QA Playbook
+        // TEMPORARILY DISABLED - re-enable by uncommenting this block
+        /*
         if (window.TCF_PLAYBOOK && window.TCF_PLAYBOOK.steps) {
             window.TCF_PLAYBOOK.steps.forEach(function (step) {
                 var fullText = step.summary;
@@ -247,6 +249,7 @@ window.TopicSearch = (function () {
                 });
             });
         }
+        */
     }
 
     /* ---- Search ---- */
@@ -404,6 +407,8 @@ window.TopicSearch = (function () {
         }
 
         // Cross-reference to MCG QA Playbook (for policy and checklist tabs)
+        // TEMPORARILY DISABLED - re-enable by uncommenting this block
+        /*
         if (tabKey === 'policy' || tabKey === 'checklist') {
             var refMap = tabKey === 'policy' ? playbookByPolicyRef : playbookByControlRef;
             var relatedSteps = refMap[r.id] || [];
@@ -420,6 +425,7 @@ window.TopicSearch = (function () {
                 html += '</div>';
             }
         }
+        */
 
         html += '</div>';
         return html;
