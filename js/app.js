@@ -276,16 +276,6 @@
         var el = document.getElementById('dataFreshness');
         if (!el) return;
 
-        if (window.__VENDOR_DATA_LIVE) {
-            var fetchedAt = new Date(window.__VENDOR_DATA_REFRESHED);
-            var timeStr = fetchedAt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-            var gvlVersionLive = (window.__GVL_DATA && window.__GVL_DATA.vendorListVersion) ? ' · GVL v' + window.__GVL_DATA.vendorListVersion : '';
-            el.innerHTML = '<span class="freshness-dot fresh"></span>' +
-                '<span>Live data' + gvlVersionLive + '</span>' +
-                '<span class="freshness-date">Fetched directly from IAB at ' + timeStr + '</span>';
-            return;
-        }
-
         var ts = window.__VENDOR_DATA_REFRESHED;
         if (!ts) {
             el.innerHTML = '<span class="freshness-dot stale"></span> No vendor data found. Run <code>refresh-vendor-data.ps1</code>';
@@ -322,38 +312,6 @@
             '<span class="freshness-date">Next update: ' + nextDateStr + '</span>';
     }
 
-    /* ---- Live Vendor Data Refresh ----
-       Best-effort: fetch the GVL and AVI lists directly from IAB at runtime so hosted
-       deployments (GitHub Pages, Vibehub) always show current data without needing a
-       redeploy. Falls back silently to the bundled snapshot when fetch fails (offline,
-       CORS-blocked, or opened via file://). ---- */
-    function refreshLiveVendorData() {
-        var gvlUrl = 'https://vendor-list.consensu.org/v3/vendor-list.json';
-        var aviUrl = 'https://vendor-list.consensu.org/v2/additional-vendor-information-list.json';
-
-        Promise.all([
-            fetch(gvlUrl).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
-            fetch(aviUrl).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-        ]).then(function (results) {
-            var gvl = results[0];
-            var avi = results[1];
-
-            window.__GVL_DATA = gvl;
-            window.__AVI_DATA = avi;
-            window.__VENDOR_DATA_REFRESHED = new Date().toISOString();
-            window.__VENDOR_DATA_LIVE = true;
-
-            if (window.VendorSearch && typeof window.VendorSearch.setData === 'function') {
-                window.VendorSearch.setData(gvl, avi);
-            }
-
-            initDataFreshness();
-            console.log('Live vendor data loaded from IAB (GVL v' + gvl.vendorListVersion + ').');
-        }).catch(function (err) {
-            console.log('Live vendor data fetch unavailable, using bundled snapshot:', err.message || err);
-        });
-    }
-
     /* ---- Init ---- */
     document.addEventListener('DOMContentLoaded', function () {
         resultsArea = document.getElementById('resultsArea');
@@ -372,7 +330,6 @@
         initDecoder();
         if (window.VendorSearch) initVendorSearch();
         initDataFreshness();
-        refreshLiveVendorData();
 
         // Close results
         document.getElementById('closeResults').addEventListener('click', hideResults);

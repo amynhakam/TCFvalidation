@@ -175,7 +175,7 @@
                 <hr class="setting-divider">
                 <div class="setting-row">
                     <label>Vendor Data</label>
-                    <p class="setting-hint">GVL and AVI data is fetched live from IAB directly on every page load — no setup required. If live data is unavailable (offline, or opened via <code>file://</code>), a bundled local snapshot is used as fallback.</p>
+                    <p class="setting-hint">GVL and AVI data is refreshed automatically once a week by an automated pipeline and bundled into the site. IAB does not allow direct browser fetches (CORS-restricted), so live per-request lookups aren't possible — this weekly snapshot is the freshest data the app can show.</p>
                     <div class="data-freshness" id="dataFreshness"></div>
                 </div>
                 <hr class="setting-divider">
