@@ -312,6 +312,60 @@
             '<span class="freshness-date">Next update: ' + nextDateStr + '</span>';
     }
 
+    /* ---- Live Vendor Data Refresh ----
+       GitHub Pages serves all static files with Access-Control-Allow-Origin: * (confirmed),
+       unlike IAB's own endpoints which block cross-origin browser fetches entirely.
+       So instead of fetching from IAB directly (blocked), fetch the already-refreshed
+       snapshot files published by the weekly GitHub Action from GitHub Pages itself.
+       This works from any host (GitHub Pages, Vibehub, etc). Falls back silently to the
+       bundled snapshot already loaded via <script> tags if this fetch fails. ---- */
+    var LIVE_DATA_BASE = 'https://amynhakam.github.io/TCFvalidation/data/';
+
+    function extractJsonAssignment(text) {
+        var start = text.indexOf('{');
+        var end = text.lastIndexOf('}');
+        if (start === -1 || end === -1 || end < start) return null;
+        try {
+            return JSON.parse(text.substring(start, end + 1));
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function extractQuotedAssignment(text) {
+        var match = text.match(/=\s*'([^']*)'/);
+        return match ? match[1] : null;
+    }
+
+    function refreshLiveVendorData() {
+        Promise.all([
+            fetch(LIVE_DATA_BASE + 'gvl-vendor-list.js').then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }),
+            fetch(LIVE_DATA_BASE + 'avi-list.js').then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }),
+            fetch(LIVE_DATA_BASE + 'vendor-data-meta.js').then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+        ]).then(function (results) {
+            var gvl = extractJsonAssignment(results[0]);
+            var avi = extractJsonAssignment(results[1]);
+            var refreshedTs = extractQuotedAssignment(results[2]);
+
+            if (!gvl || !avi) {
+                throw new Error('Could not parse live vendor data.');
+            }
+
+            window.__GVL_DATA = gvl;
+            window.__AVI_DATA = avi;
+            if (refreshedTs) window.__VENDOR_DATA_REFRESHED = refreshedTs;
+
+            if (window.VendorSearch && typeof window.VendorSearch.setData === 'function') {
+                window.VendorSearch.setData(gvl, avi);
+            }
+
+            initDataFreshness();
+            console.log('Live vendor data loaded from GitHub Pages (GVL v' + gvl.vendorListVersion + ').');
+        }).catch(function (err) {
+            console.log('Live vendor data fetch unavailable, using bundled snapshot:', err.message || err);
+        });
+    }
+
     /* ---- Init ---- */
     document.addEventListener('DOMContentLoaded', function () {
         resultsArea = document.getElementById('resultsArea');
@@ -330,6 +384,7 @@
         initDecoder();
         if (window.VendorSearch) initVendorSearch();
         initDataFreshness();
+        refreshLiveVendorData();
 
         // Close results
         document.getElementById('closeResults').addEventListener('click', hideResults);

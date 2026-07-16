@@ -73,6 +73,13 @@ window.VendorSearch = (function () {
 
     function isLoaded() { return loaded; }
 
+    /* ---- Replace cached data with freshly fetched data (used by live data refresh) ---- */
+    function setData(gvl, avi) {
+        if (gvl) gvlData = gvl;
+        if (avi) aviData = avi;
+        loaded = !!(gvlData || aviData);
+    }
+
     /* ---- Search ---- */
     function search(query, callback) {
         loadData(function (err) {
@@ -466,6 +473,7 @@ window.VendorSearch = (function () {
         renderResults: renderResults,
         loadData: loadData,
         getVendorName: getVendorName,
-        isLoaded: isLoaded
+        isLoaded: isLoaded,
+        setData: setData
     };
 })();
