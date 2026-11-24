@@ -1,49 +1,17 @@
-name: Weekly Refresh And Vibehub Deploy
+name: Deploy To Vibehub
 
 on:
-  schedule:
-    # Every Monday at 09:00 UTC
-    - cron: "0 9 * * 1"
   workflow_dispatch:
 
 permissions:
-  contents: write
-
-concurrency:
-  group: tcf-weekly-refresh-and-vibehub
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  refresh-and-deploy:
+  deploy:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-
-      - name: Configure Git identity
-        shell: pwsh
-        run: |
-          git config user.name "amynhakam"
-          git config user.email "amynhakam@users.noreply.github.com"
-
-      - name: Refresh vendor data
-        shell: pwsh
-        run: ./refresh-vendor-data.ps1 -SkipGitPush
-
-      - name: Commit and push refreshed data
-        id: commit_data
-        shell: pwsh
-        run: |
-          git add data/gvl-vendor-list.json data/avi-list.json data/gvl-vendor-list.js data/avi-list.js data/vendor-data-meta.js
-          if (git diff --cached --quiet) {
-            Write-Host "No vendor data changes detected."
-            "changed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          } else {
-            $timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
-            git commit -m "Auto-refresh vendor data ($timestamp)"
-            git push
-            "changed=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          }
 
       - name: Prepare Vibehub deployment zip
         shell: pwsh
@@ -87,11 +55,14 @@ jobs:
 
           $zipPath = Join-Path (Get-Location).Path "app-vibehub.zip"
 
-          # Existing-project version pushes omit new-project metadata.
+          # Existing-project version pushes omit new-project metadata (name/description).
+          # overwrite=true replaces the live version in place instead of accumulating version history,
+          # matching on-demand "deploy whatever is on main right now" usage.
           $response = curl.exe -sS --fail-with-body -X POST `
             -H "X-API-Key: $env:VIBEHUB_API_KEY" `
             -F "file=@$zipPath" `
             -F "projectId=$env:VIBEHUB_PROJECT_ID" `
+            -F "overwrite=true" `
             "https://vibehub.microsoft.com/api/external/push"
           $curlExitCode = $LASTEXITCODE
 

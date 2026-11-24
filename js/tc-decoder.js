@@ -200,13 +200,25 @@ window.TCDecoder = (function () {
             return { error: 'Empty TC String.' };
         }
 
+        const segments = trimmed.split('.');
+        // A real TC String is base64url-encoded; reject anything containing
+        // characters outside that alphabet before attempting to decode it.
+        const isBase64Url = /^[A-Za-z0-9_-]+$/;
+        for (let i = 0; i < segments.length; i++) {
+            if (!segments[i] || !isBase64Url.test(segments[i])) {
+                return { error: 'Not a valid TC String: contains characters outside the base64url alphabet.' };
+            }
+        }
+
         try {
-            const segments = trimmed.split('.');
             const coreReader = BitReader(segments[0]);
             const result = decodeCore(coreReader);
 
-            if (result.version < 2) {
-                return { error: 'TC String version ' + result.version + ' is not supported. Only TCF v2.x strings are supported.' };
+            // Per the IAB TCF spec, the Core segment's Version field is a fixed
+            // value of 2 for every TCF v2.x string. Any other value means this
+            // isn't a real TC String, even if it happens to be valid base64url.
+            if (result.version !== 2) {
+                return { error: 'Not a valid TC String: encoding version is ' + result.version + ', but TCF v2.x strings must have version 2.' };
             }
 
             result.disclosedVendors = null;
@@ -284,6 +296,23 @@ window.TCDecoder = (function () {
         html += '<div class="decode-section"><h3>Vendor Consents</h3>';
         html += vendorBlock(result.vendorConsents, result.maxVendorConsentId, 'Consented');
         html += '</div>';
+
+        // Vendor Disclosed, Not Consented: the user declined a legal basis the vendor actually asked for
+        if (result.disclosedVendors) {
+            const declined = new Set();
+            result.disclosedVendors.forEach(function (id) {
+                const asks = declaredLegalBases(id);
+                if (!asks) return;
+                if ((asks.consent && !result.vendorConsents.has(id)) ||
+                    (asks.legInt && !result.vendorLegitimateInterests.has(id))) {
+                    declined.add(id);
+                }
+            });
+            html += '<div class="decode-section"><h3>Vendor Disclosed, Not Consented</h3>';
+            html += '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">Disclosed vendors whose consent or legitimate interest was requested but not granted. Vendors needing no consent (special purposes/features only) or with legitimate interest established are excluded.</p>';
+            html += vendorBlock(declined, 0, 'Disclosed, not consented');
+            html += '</div>';
+        }
 
         // Vendor Legitimate Interests
         html += '<div class="decode-section"><h3>Vendor Legitimate Interests</h3>';
@@ -387,7 +416,7 @@ window.TCDecoder = (function () {
 
         if (count > 0) {
             const ids = Array.from(set).sort(function (a, b) { return a - b; });
-            const uid = 'vlist-' + label.replace(/\s+/g, '') + '-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+            const uid = 'vlist-' + label.replace(/[^A-Za-z0-9]+/g, '') + '-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
             html += '<button class="vendor-expand-toggle" data-target="' + uid + '" data-vendor-ids="' + escHtml(JSON.stringify(ids)) + '">Show ' + count + ' vendor' + (count !== 1 ? 's' : '') + ' ▾</button>';
             html += '<div class="vendor-list-expandable" id="' + uid + '" hidden></div>';
         }
@@ -406,6 +435,16 @@ window.TCDecoder = (function () {
             return window.__GVL_DATA.vendors[id].name;
         }
         return null;
+    }
+
+    // Which legal bases a vendor declares in the GVL; null when the vendor is not in the bundled list
+    function declaredLegalBases(id) {
+        var v = window.__GVL_DATA && window.__GVL_DATA.vendors && window.__GVL_DATA.vendors[id];
+        if (!v) return null;
+        return {
+            consent: !!(v.purposes && v.purposes.length > 0),
+            legInt: !!(v.legIntPurposes && v.legIntPurposes.length > 0)
+        };
     }
 
     function renderVendorList(ids) {

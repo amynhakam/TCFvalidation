@@ -1,0 +1,43 @@
+name: Weekly Vendor Data Refresh
+
+on:
+  schedule:
+    # Every Monday at 09:00 UTC
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tcf-weekly-vendor-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Configure Git identity
+        shell: pwsh
+        run: |
+          git config user.name "amynhakam"
+          git config user.email "amynhakam@users.noreply.github.com"
+
+      - name: Refresh vendor data
+        shell: pwsh
+        run: ./refresh-vendor-data.ps1 -SkipGitPush
+
+      - name: Commit and push refreshed data
+        shell: pwsh
+        run: |
+          git add data/gvl-vendor-list.json data/avi-list.json data/gvl-vendor-list.js data/avi-list.js data/vendor-data-meta.js
+          if (git diff --cached --quiet) {
+            Write-Host "No vendor data changes detected."
+          } else {
+            $timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
+            git commit -m "Auto-refresh vendor data ($timestamp)"
+            git push
+          }

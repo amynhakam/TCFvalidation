@@ -86,9 +86,16 @@ As a publisher operating an IAB-approved CMP (ID 198) for a Windows desktop appl
   - AI results are presented as suggestions alongside the manual checklist, not as definitive pass/fail.
   - API key stored only in browser localStorage, never transmitted to any server other than OpenAI.
 
-### 3.5 Edge Case & Guidance Reference
+### 3.5 TC String Decoder
 
-- **FR-16:** Dedicated section for edge cases and guidance, including:
+- **FR-16:** Decode and display the contents of a pasted IAB TCF v2.x Consent String (Core segment plus optional Disclosed Vendors / Allowed Vendors / Publisher TC segments), client-side, with no network calls.
+- **FR-17:** Reject input that is not a genuine TC String rather than silently decoding it as if it were:
+  - Input must be base64url-encoded (`A–Z`, `a–z`, `0–9`, `-`, `_` only, per `.`-delimited segment); anything else is rejected with a clear error before decoding is attempted.
+  - The Core segment's 6-bit Version field must equal exactly `2` (the fixed encoding version for all TCF v2.x strings per the IAB spec). Any other value — including ones that happen to decode from random/garbage input — must be rejected, not reported as "Valid TC String (TCF vN)".
+
+### 3.6 Edge Case & Guidance Reference
+
+- **FR-18:** Dedicated section for edge cases and guidance, including:
   - Granular consent on secondary layer: consenting to individual purposes and vendors after initial accept/decline.
   - Legitimate interest on secondary layer: right-to-object mechanics, how LI signals differ from consent signals.
   - Consent state transitions: Accept → partial decline via Advanced Settings → re-accept flow.
@@ -98,7 +105,7 @@ As a publisher operating an IAB-approved CMP (ID 198) for a Windows desktop appl
   - Sync pixel blocking/firing logic based on consent state.
   - MCGID, MUID, ANID, LiveRamp ID presence/absence based on consent state.
   - Brazil and Canada treatment as GDPR regions.
-- **FR-17:** Each edge case links to the relevant TCF Policy section, Controls Catalogue item, and QA Playbook procedure.
+- **FR-19:** Each edge case links to the relevant TCF Policy section, Controls Catalogue item, and QA Playbook procedure.
 
 ---
 
@@ -110,11 +117,13 @@ As a publisher operating an IAB-approved CMP (ID 198) for a Windows desktop appl
 - **NFR-3:** Must work offline (all policy/checklist content embedded, no external dependencies for core functionality).
 - **NFR-4:** AI features (FR-15) require internet access and API key — gracefully degrade when unavailable.
 
-#### Automated VibeHub Deployment
-- The GitHub Actions workflow in `amynhakam/TCFvalidation` refreshes vendor data and publishes a new VibeHub version every Monday at 09:00 UTC, or on manual dispatch.
-- Existing-project uploads to `/api/external/push` send only the multipart `file` (application ZIP) and `projectId` fields, authenticated using the `VIBEHUB_API_KEY` repository secret. The target is configured by `VIBEHUB_PROJECT_ID`.
-- Omit new-project metadata (`name` and `description`) from version pushes; preserve the existing project's metadata and version history. `VIBEHUB_PROJECT_NAME` and `VIBEHUB_PROJECT_DESCRIPTION` are not used by this workflow.
-- Deployment must fail explicitly on transport failures, HTTP errors, or API error responses, retaining the response body for diagnosis. Do not automatically retry rejected credentials; VibeHub API keys expire after 90 days and must be replaced in the consuming repository secret after renewal.
+#### Vendor Data Refresh vs. VibeHub Deployment (separate, independent workflows)
+These were previously one combined scheduled workflow; they are now split because they serve different purposes and have different reliability needs:
+
+- **`weekly-vendor-refresh.yml`** (automatic, scheduled every Monday 09:00 UTC, or manual dispatch): downloads the latest IAB GVL/AVI vendor lists and commits them to `main`. This is the only input the live app needs for vendor-data freshness — the hosted app (on GitHub Pages *or* VibeHub) fetches `data/*.js` live from `amynhakam.github.io/TCFvalidation/data/` on every page load (see `js/app.js` `refreshLiveVendorData()`), so the freshness indicator stays current independent of whether a VibeHub deployment has happened recently.
+- **`deploy-vibehub.yml`** (manual `workflow_dispatch` only, no schedule): zips the current `main` branch state and pushes it to VibeHub via `/api/external/push`. This is the only way application *code* changes (HTML/CSS/JS features and fixes) reach the live VibeHub-hosted copy — vendor-data refreshes alone do not update app behavior there. Run this on demand whenever a code change needs to go live on VibeHub.
+  - Existing-project uploads send only the multipart `file` (application ZIP), `projectId`, and `overwrite=true` fields, authenticated using the `VIBEHUB_API_KEY` repository secret, targeting `VIBEHUB_PROJECT_ID`. `overwrite=true` replaces the live version in place rather than accumulating version history.
+  - Deployment must fail explicitly on transport failures, HTTP errors, or API error responses, retaining the response body for diagnosis. Do not automatically retry rejected credentials; VibeHub API keys expire after 90 days and must be replaced in the consuming repository secret after renewal.
 
 ### 4.2 Performance
 - **NFR-5:** Search results appear within 200ms of typing.
