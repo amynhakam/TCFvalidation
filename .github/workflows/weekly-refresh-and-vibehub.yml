@@ -77,8 +77,6 @@ jobs:
         env:
           VIBEHUB_API_KEY: ${{ secrets.VIBEHUB_API_KEY }}
           VIBEHUB_PROJECT_ID: ${{ secrets.VIBEHUB_PROJECT_ID }}
-          VIBEHUB_PROJECT_NAME: ${{ secrets.VIBEHUB_PROJECT_NAME }}
-          VIBEHUB_PROJECT_DESCRIPTION: ${{ secrets.VIBEHUB_PROJECT_DESCRIPTION }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:VIBEHUB_API_KEY)) {
             throw "Missing required secret: VIBEHUB_API_KEY"
@@ -87,21 +85,22 @@ jobs:
             throw "Missing required secret: VIBEHUB_PROJECT_ID (existing Vibehub project ID to update in place, e.g. amhakam-6lqbqx)"
           }
 
-          $projectName = if ([string]::IsNullOrWhiteSpace($env:VIBEHUB_PROJECT_NAME)) { "TCF Requirements Tool" } else { $env:VIBEHUB_PROJECT_NAME }
-          $projectDescription = if ([string]::IsNullOrWhiteSpace($env:VIBEHUB_PROJECT_DESCRIPTION)) { "TCF Compliance Reference Tool" } else { $env:VIBEHUB_PROJECT_DESCRIPTION }
           $zipPath = Join-Path (Get-Location).Path "app-vibehub.zip"
 
-          $response = curl.exe -sS -X POST `
+          # Existing-project version pushes omit new-project metadata.
+          $response = curl.exe -sS --fail-with-body -X POST `
             -H "X-API-Key: $env:VIBEHUB_API_KEY" `
             -F "file=@$zipPath" `
             -F "projectId=$env:VIBEHUB_PROJECT_ID" `
-            -F "name=$projectName" `
-            -F "description=$projectDescription" `
             "https://vibehub.microsoft.com/api/external/push"
+          $curlExitCode = $LASTEXITCODE
 
           Write-Host "Vibehub response:"
           Write-Host $response
 
+          if ($curlExitCode -ne 0) {
+            throw "Vibehub push failed (curl exit code ${curlExitCode}): $response"
+          }
           if ($response -match '"error"') {
             throw "Vibehub push failed: $response"
           }

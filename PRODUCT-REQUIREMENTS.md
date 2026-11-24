@@ -110,6 +110,12 @@ As a publisher operating an IAB-approved CMP (ID 198) for a Windows desktop appl
 - **NFR-3:** Must work offline (all policy/checklist content embedded, no external dependencies for core functionality).
 - **NFR-4:** AI features (FR-15) require internet access and API key — gracefully degrade when unavailable.
 
+#### Automated VibeHub Deployment
+- The GitHub Actions workflow in `amynhakam/TCFvalidation` refreshes vendor data and publishes a new VibeHub version every Monday at 09:00 UTC, or on manual dispatch.
+- Existing-project uploads to `/api/external/push` send only the multipart `file` (application ZIP) and `projectId` fields, authenticated using the `VIBEHUB_API_KEY` repository secret. The target is configured by `VIBEHUB_PROJECT_ID`.
+- Omit new-project metadata (`name` and `description`) from version pushes; preserve the existing project's metadata and version history. `VIBEHUB_PROJECT_NAME` and `VIBEHUB_PROJECT_DESCRIPTION` are not used by this workflow.
+- Deployment must fail explicitly on transport failures, HTTP errors, or API error responses, retaining the response body for diagnosis. Do not automatically retry rejected credentials; VibeHub API keys expire after 90 days and must be replaced in the consuming repository secret after renewal.
+
 ### 4.2 Performance
 - **NFR-5:** Search results appear within 200ms of typing.
 - **NFR-6:** Page loads in under 2 seconds on a standard machine.
