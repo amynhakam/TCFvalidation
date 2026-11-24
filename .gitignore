@@ -8,3 +8,7 @@ data/avi-list.json
 # OS files
 Thumbs.db
 .DS_Store
+
+# VibeHub deployment build artifacts (produced by deploy-to-vibehub.ps1)
+_vibehub_stage/
+app-vibehub.zip
