@@ -11,4 +11,5 @@ Thumbs.db
 
 # VibeHub deployment build artifacts (produced by deploy-to-vibehub.ps1)
 _vibehub_stage/
+_vibehub_deploy/
 app-vibehub.zip
