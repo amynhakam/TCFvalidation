@@ -3,16 +3,20 @@
 # from a local/assistant-driven run instead of CI, since the deploy step needs
 # a human decision point (what's being shipped) rather than a fixed schedule.
 #
+# This repo's VibeHub project ID is amhakam-lg2vih (https://vibehub.microsoft.com/app/tcfvalidation).
+#
 # Credentials are read from environment variables so the key is never typed
 # into source control, a chat session, or a script argument on the command line:
 #   VIBEHUB_API_KEY    - VibeHub personal API key (vhpat_...)
-#   VIBEHUB_PROJECT_ID  - Existing VibeHub project ID to update in place
+#   VIBEHUB_PROJECT_ID  - Existing VibeHub project ID to update in place (amhakam-lg2vih for this repo)
 #
 # Set them once as persistent *user* environment variables (PowerShell, run by
 # you, not pasted anywhere):
 #   [Environment]::SetEnvironmentVariable('VIBEHUB_API_KEY', '<your key>', 'User')
-#   [Environment]::SetEnvironmentVariable('VIBEHUB_PROJECT_ID', '<your project id>', 'User')
-# Then open a new terminal so the variables take effect.
+#   [Environment]::SetEnvironmentVariable('VIBEHUB_PROJECT_ID', 'amhakam-lg2vih', 'User')
+# Then fully restart the application hosting your terminal/assistant session
+# (a new terminal tab alone is not enough — Windows apps don't re-read
+# environment variables once already running) so the variables take effect.
 #
 # Usage: .\deploy-to-vibehub.ps1
 
